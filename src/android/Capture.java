@@ -18,35 +18,9 @@
 */
 package org.apache.cordova.mediacapture;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-
-import android.content.ActivityNotFoundException;
-import android.os.Build;
-import android.os.Bundle;
-
-import org.apache.cordova.BuildHelper;
-import org.apache.cordova.file.FileUtils;
-import org.apache.cordova.file.LocalFilesystemURL;
-
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.LOG;
-import org.apache.cordova.PermissionHelper;
-import org.apache.cordova.PluginManager;
-import org.apache.cordova.mediacapture.PendingRequests.Request;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.Manifest;
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
@@ -56,10 +30,34 @@ import android.database.Cursor;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 
 import androidx.core.content.FileProvider;
+
+import org.apache.cordova.BuildHelper;
+import org.apache.cordova.CallbackContext;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.LOG;
+import org.apache.cordova.PermissionHelper;
+import org.apache.cordova.PluginManager;
+import org.apache.cordova.file.FileUtils;
+import org.apache.cordova.file.LocalFilesystemURL;
+import org.apache.cordova.mediacapture.PendingRequests.Request;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 
 public class Capture extends CordovaPlugin {
 
@@ -187,7 +185,6 @@ public class Capture extends CordovaPlugin {
     /**
      * Get the Image specific attributes
      *
-     * @param filePath path to the file
      * @param obj      represents the Media File Data
      * @return a JSONObject that represents the Media File Data
      * @throws JSONException
@@ -304,11 +301,17 @@ public class Capture extends CordovaPlugin {
         } else {
             Intent intent = new Intent(android.provider.MediaStore.ACTION_VIDEO_CAPTURE);
 
-            ContentResolver contentResolver = this.cordova.getActivity().getContentResolver();
-            ContentValues cv = new ContentValues();
-//            cv.put(MediaStore.Images.Media.MIME_TYPE, VIDEO_MP4);
-            videoUri = contentResolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, cv);
-            intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, videoUri);
+            File dir = Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)
+                    ? cordova.getActivity().getExternalFilesDir(null)
+                    : cordova.getActivity().getFilesDir();
+
+            String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File file = new File(dir.getAbsolutePath() + "/video_" + timeStamp + ".mp4");
+            this.videoUri = Uri.fromFile(file);
+
+            intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                    FileProvider.getUriForFile(cordova.getActivity(), applicationId + ".provider",
+                            file));
 
             if (Build.VERSION.SDK_INT > 7) {
                 intent.putExtra("android.intent.extra.durationLimit", req.duration);
