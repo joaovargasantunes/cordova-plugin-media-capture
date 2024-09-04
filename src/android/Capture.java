@@ -319,7 +319,8 @@ public class Capture extends CordovaPlugin {
             File file = new File(dir.getAbsolutePath() + "/video_" + timeStamp + ".mp4");
             this.videoUri = Uri.fromFile(file);
 
-            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(cordova.getActivity(), applicationId + ".fileprovider", file));
+            String authority = cordova.getActivity().getPackageName() + ".fileOpener2.provider";
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(cordova.getActivity(), authority, file));
 
             intent.putExtra("android.intent.extra.durationLimit", req.duration);
             intent.putExtra("android.intent.extra.videoQuality", req.quality);
