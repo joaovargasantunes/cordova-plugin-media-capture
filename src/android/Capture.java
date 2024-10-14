@@ -412,8 +412,6 @@ public class Capture extends CordovaPlugin {
                 File outputFile = new File(aux.getPath().replace(extension, "jpg"));
                 Bitmap thumbImage = ThumbnailUtils.createVideoThumbnail(videoUri.getPath(), MediaStore.Video.Thumbnails.FULL_SCREEN_KIND);
                 thumbImage = ThumbnailUtils.extractThumbnail(thumbImage, 300, 300);
-                thumbImage = addDate(thumbImage, true);
-
                 FileOutputStream out = new FileOutputStream(outputFile);
                 thumbImage.compress(Bitmap.CompressFormat.JPEG, 100, out);
 
@@ -454,36 +452,6 @@ public class Capture extends CordovaPlugin {
             e.printStackTrace();
         }
         return null;
-    }
-
-    private static Bitmap addDate(Bitmap src, boolean thumb) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy 'ás' HH:mm:ss");
-        String dateTime = sdf.format(Calendar.getInstance().getTime());
-        int w = src.getWidth();
-        int h = src.getHeight();
-        Bitmap result = Bitmap.createBitmap(w, h, src.getConfig());
-        Canvas canvas = new Canvas(result);
-        canvas.drawBitmap(src, 0, 0, null);
-
-        Paint tPaint = new Paint();
-        tPaint.setColor(Color.BLACK);
-        tPaint.setStyle(Paint.Style.FILL);
-
-        Paint paintD = new Paint();
-        paintD.setColor(Color.WHITE);
-
-        if (!thumb) {
-            tPaint.setTextSize(20);
-            canvas.drawRect(20, 20, 275, 70, paintD);
-            canvas.drawText(dateTime, 40, 55, tPaint);
-        } else {
-            tPaint.setTextSize(12);
-            canvas.drawRect(10, 10, 171, 35, paintD);
-            canvas.drawText(dateTime, 25, 27, tPaint);
-        }
-
-
-        return result;
     }
 
     /**
